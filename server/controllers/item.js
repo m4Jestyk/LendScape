@@ -263,8 +263,9 @@ export const rentItem = async(req, res) => {
 
     // Remove the item from itemsOnSale
     lendUser.itemsOnSale = lendUser.itemsOnSale.filter(
-        thisItem => thisItem.toString() !== itemId
+        thisItem => thisItem.itemId.toString() !== itemId
     );
+
 
     // Append the item details to itemsBorrowed for the borrowing user
     const itemDetails = {
@@ -301,6 +302,8 @@ export const rentItem = async(req, res) => {
 
 // Return Item
 export const returnItem = async(req, res) => {
+
+    //ADD FEATURE OF PROFIT CALCULATION!!!
 
     const userId = req.user._id;
 
