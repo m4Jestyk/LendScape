@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 
+
 const userSchema = mongoose.Schema(
     {
-        name:{
+        name: {
             type: String,
             required: true,
         },
@@ -21,22 +22,53 @@ const userSchema = mongoose.Schema(
             minLength: 6,
             required: true,
         },
-        itemsOnSale:[
+        totalEarning: {
+            type: Number,
+            default: 0
+        },
+        totalSpent: {
+            type: Number,
+            default: 0
+        },
+        itemsOnSale: [
             {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Item"
-           } 
+                itemId: { type: mongoose.Schema.Types.ObjectId, ref: "Item" },
+                name: String,
+                category: String,
+                priceByTenure: Number,
+                age: Number,
+                description: String,
+                condition: Number,
+                stars: Number,
+                timesRented: Number
+            }
         ],
-        itemsLended:[
-           {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Item"
-           } 
+        itemsLended: [
+            {
+                itemId: { type: mongoose.Schema.Types.ObjectId, ref: "Item" },
+                name: String,
+                category: String,
+                priceByTenure: Number,
+                age: Number,
+                description: String,
+                condition: Number,
+                stars: Number,
+                timesRented: Number,
+                dateLended: Date,
+            }
         ],
         itemsBorrowed: [
             {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Item"
+                itemId: { type: mongoose.Schema.Types.ObjectId, ref: "Item" },
+                name: String,
+                category: String,
+                priceByTenure: Number,
+                age: Number,
+                description: String,
+                condition: Number,
+                stars: Number,
+                timesRented: Number,
+                dateBorrowed: Date,
             }
         ]
     },

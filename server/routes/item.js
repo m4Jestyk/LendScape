@@ -1,6 +1,6 @@
 import express from "express"
 import { isAuthenticated } from "../middlewares/auth.js";
-import { addItem, getBorrowedItems, getItem, getLendedItems, getSaleItems, rentItem, returnItem, updateItem } from "../controllers/item.js";
+import { addItem, deleteItem, getBorrowedItems, getItem, getLendedItems, getSaleItems, rentItem, returnItem, updateItem } from "../controllers/item.js";
 
 
 const router = express.Router();
@@ -8,6 +8,8 @@ const router = express.Router();
 router.post("/add", isAuthenticated, addItem);
 
 router.put("/update/:itemid", isAuthenticated, updateItem);
+
+router.delete("/delete/:itemid", isAuthenticated, deleteItem);
 
 router.get("/get/:itemid", getItem);
 

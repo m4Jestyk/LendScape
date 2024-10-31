@@ -3,14 +3,18 @@ import { connectDB } from "./db/db.js";
 import userRouter from "./routes/user.js";
 import itemRouter from "./routes/item.js";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
 const app = express();
-const PORT = 3000;
+const PORT = 8000;
 
 connectDB();
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors({
+    origin: "http://localhost:3000"
+}))
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/items", itemRouter);

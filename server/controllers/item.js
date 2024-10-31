@@ -90,6 +90,43 @@ export const updateItem = async(req, res) => {
     })
 }
 
+
+//Remove item from sale
+export const deleteItem = async(req, res) => {
+    try {
+        const itemId = req.params.itemid;
+        const item = await Item.findById(itemId);
+
+        if(!item){
+            return res.json({
+                success: false,
+                message: "Item not found"
+            })
+        }
+
+        await Item.findByIdAndDelete(itemId);
+
+        await User.updateMany(
+            {},
+            { 
+                $pull: { 
+                    itemsOnSale: itemId, 
+                    itemsLended: itemId, 
+                    itemsBorrowed: itemId 
+                } 
+            }
+        );
+
+        return res.json({
+            success: true,
+            message: "Item removed"
+        })
+
+    } catch (error) {
+        console.log("Error in removing item :: " + error);
+    }
+}
+
 //getItem
 export const getItem = async(req, res) => {
     const itemId = req.params.itemid;
@@ -196,49 +233,62 @@ export const rentItem = async(req, res) => {
 
     const borrowUser = await User.findById(userId);
 
-    if(!borrowUser)
-    {
+    if (!borrowUser) {
         return res.json({
-            succses: false,
+            success: false,
             message: "Borrowing user not found in DB"
-        })
+        });
     }
 
     const itemId = req.params.itemid;
 
     const item = await Item.findById(itemId);
 
-    if(!item)
-    {
+    if (!item) {                                           //ADD A CHECK TO SEE IF PRESENT IN SALEiTEMS
         return res.json({
             success: false,
             message: "Item not found"
-        })
+        });
     }
 
     const lendUser = await User.findById(item.sellerID);
 
-    if(!lendUser)
-    {
+    if (!lendUser) {
         return res.json({
             success: false,
             message: "Lend User not found in DB"
-        })
+        });
     }
 
+
+    // Remove the item from itemsOnSale
     lendUser.itemsOnSale = lendUser.itemsOnSale.filter(
         thisItem => thisItem.toString() !== itemId
     );
 
-    borrowUser.itemsBorrowed = [
-        ...borrowUser.itemsBorrowed,
-        itemId
-    ];
+    // Append the item details to itemsBorrowed for the borrowing user
+    const itemDetails = {
+        itemId: item._id,
+        name: item.name,
+        category: item.category,
+        priceByTenure: item.priceByTenure,
+        age: item.age,
+        description: item.description,
+        condition: item.condition,
+        stars: item.stars,
+        timesRented: item.timesRented
+    };
 
-    lendUser.itemsLended = [
-        ...lendUser.itemsLended,
-        itemId
-    ];
+    borrowUser.itemsBorrowed.push({
+        ...itemDetails,
+        dateBorrowed: new Date(),
+    });
+
+    // Append the item details to itemsLended for the lending user
+    lendUser.itemsLended.push({
+        ...itemDetails,
+        dateLended: new Date(),
+    });
 
     await borrowUser.save();
     await lendUser.save();
@@ -246,66 +296,83 @@ export const rentItem = async(req, res) => {
     return res.status(200).json({
         success: true,
         message: "SOLD!!"
-    })
-}
+    });
+};
 
-//returnItem
-
-
+// Return Item
 export const returnItem = async(req, res) => {
 
     const userId = req.user._id;
 
     const borrowUser = await User.findById(userId);
 
-    if(!borrowUser)
-    {
+    if (!borrowUser) {
         return res.json({
-            succses: false,
+            success: false,
             message: "Borrowing user not found in DB"
-        })
+        });
     }
 
     const itemId = req.params.itemid;
 
     const item = await Item.findById(itemId);
 
-    if(!item)
-    {
+    if (!item) {
         return res.json({
             success: false,
             message: "Item not found"
-        })
+        });
     }
 
     const lendUser = await User.findById(item.sellerID);
 
-    if(!lendUser)
-    {
+    if (!lendUser) {
         return res.json({
             success: false,
             message: "Lend User not found in DB"
-        })
+        });
     }
 
-    lendUser.itemsOnSale = [
-        ...lendUser.itemsOnSale,
-        itemId
-    ]
+    if (typeof item.timesRented !== 'number' || isNaN(item.timesRented)) {
+        item.timesRented = 0; // Initialize to 0 if not a number
+    }
 
+    // Increment timesRented when the item is returned
+    item.timesRented += 1;
+    await item.save();
+
+    // Updated item details after incrementing timesRented
+    const itemDetails = {
+        itemId: item._id,
+        name: item.name,
+        category: item.category,
+        priceByTenure: item.priceByTenure,
+        age: item.age,
+        description: item.description,
+        condition: item.condition,
+        stars: item.stars,
+        timesRented: item.timesRented // Updated count
+    };
+
+    // Add the item back to itemsOnSale
+    lendUser.itemsOnSale.push(itemDetails);
+
+    // Remove the item from itemsBorrowed for the borrowing user
     borrowUser.itemsBorrowed = borrowUser.itemsBorrowed.filter(
-        thisItem => thisItem.toString() !== itemId
-    )
+        thisItem => thisItem.itemId.toString() !== itemId
+    );
 
+    // Remove the item from itemsLended for the lending user
     lendUser.itemsLended = lendUser.itemsLended.filter(
-        thisItem => thisItem.toString() !== itemId
-    )
+        thisItem => thisItem.itemId.toString() !== itemId
+    );
 
     await borrowUser.save();
     await lendUser.save();
 
     return res.status(200).json({
         success: true,
-        message: "returned!!"
-    })
-}
+        message: "Item returned!"
+    });
+};
+
