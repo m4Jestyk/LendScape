@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 import Item from "../models/item.js";
 import { User } from "../models/user.js";
 
-export const addItem = async(req, res) => {
+export const addItem = async (req, res) => {
     const userId = req.user._id;
 
     console.log("User id is =========", userId);
 
-    const {name, category, priceByTenure, age, description, condition} = req.body;
+    const { name, category, priceByTenure, age, description, condition } = req.body;
 
     const item = await Item.create({
         name,
@@ -27,8 +27,7 @@ export const addItem = async(req, res) => {
 
     user = await User.findById(userId);
 
-    if(!user)
-    {
+    if (!user) {
         return res.json({
             success: false,
             message: "User not found"
@@ -40,26 +39,25 @@ export const addItem = async(req, res) => {
     user.save();
 
     return res.json({
-        success:true,
-        message:"Item published"
+        success: true,
+        message: "Item published"
     })
 }
 
-export const updateItem = async(req, res) => {
+export const updateItem = async (req, res) => {
     const userId = req.user._id;
 
     console.log("Logged in user ===", userId);
 
     const itemId = req.params.itemid;
 
-    const {name, category, priceByTenure, age, description, condition} = req.body;
+    const { name, category, priceByTenure, age, description, condition } = req.body;
 
     const item = await Item.findById(itemId);
 
-    console.log("Item id ==== " , itemId);
+    console.log("Item id ==== ", itemId);
 
-    if(!item)
-    {
+    if (!item) {
         return res.json({
             success: false,
             message: "Item not found"
@@ -67,8 +65,7 @@ export const updateItem = async(req, res) => {
     }
 
 
-    if(item.sellerID.toString() !== userId.toString())
-    {
+    if (item.sellerID.toString() !== userId.toString()) {
         return res.json({
             success: false,
             message: "You cannot update someone else's item"
@@ -90,14 +87,21 @@ export const updateItem = async(req, res) => {
     })
 }
 
+export const getAllItems = async (req, res) => {
+    const items = await Item.find();
+    return res.json({
+        items
+    })
+}
+
 
 //Remove item from sale
-export const deleteItem = async(req, res) => {
+export const deleteItem = async (req, res) => {
     try {
         const itemId = req.params.itemid;
         const item = await Item.findById(itemId);
 
-        if(!item){
+        if (!item) {
             return res.json({
                 success: false,
                 message: "Item not found"
@@ -108,12 +112,12 @@ export const deleteItem = async(req, res) => {
 
         await User.updateMany(
             {},
-            { 
-                $pull: { 
-                    itemsOnSale: itemId, 
-                    itemsLended: itemId, 
-                    itemsBorrowed: itemId 
-                } 
+            {
+                $pull: {
+                    itemsOnSale: itemId,
+                    itemsLended: itemId,
+                    itemsBorrowed: itemId
+                }
             }
         );
 
@@ -128,37 +132,39 @@ export const deleteItem = async(req, res) => {
 }
 
 //getItem
-export const getItem = async(req, res) => {
-    const itemId = req.params.itemid;
+export const getItem = async (req, res) => {
+    try {
+        const itemId = req.params.itemid;
 
-    const item = await Item.findById(itemId);
+        const item = await Item.findById(itemId);
 
-    if(!item)
-    {
+        if (!item) {
+            return res.json({
+                success: false,
+                message: "Item not found"
+            })
+        }
+
         return res.json({
-            success: false,
-            message: "Item not found"
+            success: true,
+            message: "Item found",
+            item
         })
+    } catch (error) {
+        console.log("Error in getting item :: ", error);
     }
-
-    return res.json({
-        success: true,
-        message: "Item found",
-        item
-    })
 }
 
 //retrieve all items on sale
 
-export const getSaleItems = async(req, res) => {
+export const getSaleItems = async (req, res) => {
     const userId = req.params.userid;
 
     console.log(userId);
 
     const user = await User.findById(userId);
 
-    if(!user)
-    {
+    if (!user) {
         return res.json({
             success: false,
             message: "User not found"
@@ -175,15 +181,14 @@ export const getSaleItems = async(req, res) => {
 
 //retrieve all lended items
 
-export const getLendedItems = async(req, res) => {
+export const getLendedItems = async (req, res) => {
     const userId = req.params.userid;
 
     console.log(userId);
 
     const user = await User.findById(userId);
 
-    if(!user)
-    {
+    if (!user) {
         return res.json({
             success: false,
             message: "User not found"
@@ -201,15 +206,14 @@ export const getLendedItems = async(req, res) => {
 
 //retrieve all borrowed items
 
-export const getBorrowedItems = async(req, res) => {
+export const getBorrowedItems = async (req, res) => {
     const userId = req.params.userid;
 
     console.log(userId);
 
     const user = await User.findById(userId);
 
-    if(!user)
-    {
+    if (!user) {
         return res.json({
             success: false,
             message: "User not found"
@@ -227,7 +231,7 @@ export const getBorrowedItems = async(req, res) => {
 
 //borrow item <-> lend item
 
-export const rentItem = async(req, res) => {
+export const rentItem = async (req, res) => {
 
     const userId = req.user._id;
 
@@ -263,8 +267,12 @@ export const rentItem = async(req, res) => {
 
     // Remove the item from itemsOnSale
     lendUser.itemsOnSale = lendUser.itemsOnSale.filter(
-        thisItem => thisItem.itemId.toString() !== itemId
+        thisItem => thisItem._id.toString() !== itemId
     );
+
+    item.availableToRent = false;
+
+    item.save();
 
 
     // Append the item details to itemsBorrowed for the borrowing user
@@ -277,7 +285,8 @@ export const rentItem = async(req, res) => {
         description: item.description,
         condition: item.condition,
         stars: item.stars,
-        timesRented: item.timesRented
+        timesRented: item.timesRented,
+        availableToRent: item.availableToRent,
     };
 
     borrowUser.itemsBorrowed.push({
@@ -301,7 +310,7 @@ export const rentItem = async(req, res) => {
 };
 
 // Return Item
-export const returnItem = async(req, res) => {
+export const returnItem = async (req, res) => {
 
     //ADD FEATURE OF PROFIT CALCULATION!!!
 
@@ -326,6 +335,8 @@ export const returnItem = async(req, res) => {
             message: "Item not found"
         });
     }
+
+    item.availableToRent = true;
 
     const lendUser = await User.findById(item.sellerID);
 
@@ -354,7 +365,8 @@ export const returnItem = async(req, res) => {
         description: item.description,
         condition: item.condition,
         stars: item.stars,
-        timesRented: item.timesRented // Updated count
+        timesRented: item.timesRented,   // Updated count
+        availableToRent: item.availableToRent
     };
 
     // Add the item back to itemsOnSale

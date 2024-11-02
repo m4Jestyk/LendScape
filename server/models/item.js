@@ -18,6 +18,10 @@ const itemSchema = mongoose.Schema(
         description: {
             type: String
         },
+        availableToRent: {
+            type: Boolean,
+            default: true
+        },
         timesRented: {
             type: Number
         },

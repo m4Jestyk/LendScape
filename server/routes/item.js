@@ -1,11 +1,13 @@
 import express from "express"
 import { isAuthenticated } from "../middlewares/auth.js";
-import { addItem, deleteItem, getBorrowedItems, getItem, getLendedItems, getSaleItems, rentItem, returnItem, updateItem } from "../controllers/item.js";
+import { addItem, deleteItem, getAllItems, getBorrowedItems, getItem, getLendedItems, getSaleItems, rentItem, returnItem, updateItem } from "../controllers/item.js";
 
 
 const router = express.Router();
 
 router.post("/add", isAuthenticated, addItem);
+
+router.get("/allitems", getAllItems);
 
 router.put("/update/:itemid", isAuthenticated, updateItem);
 
