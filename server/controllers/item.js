@@ -232,11 +232,10 @@ export const getBorrowedItems = async (req, res) => {
 //borrow item <-> lend item
 
 export const rentItem = async (req, res) => {
-
     const userId = req.user._id;
 
+    // Find the borrowing user
     const borrowUser = await User.findById(userId);
-
     if (!borrowUser) {
         return res.json({
             success: false,
@@ -246,36 +245,42 @@ export const rentItem = async (req, res) => {
 
     const itemId = req.params.itemid;
 
+    // Find the item to be rented
     const item = await Item.findById(itemId);
-
-    if (!item) {                                           //ADD A CHECK TO SEE IF PRESENT IN SALEiTEMS
+    if (!item) {
         return res.json({
             success: false,
             message: "Item not found"
         });
     }
 
-    const lendUser = await User.findById(item.sellerID);
-
-    if (!lendUser) {
+    // Check if the borrowing user is trying to rent their own item
+    if (item.sellerID.toString() === userId.toString()) {
         return res.json({
             success: false,
-            message: "Lend User not found in DB"
+            message: "You cannot rent your own item"
         });
     }
 
+    // Find the lending user (seller of the item)
+    const lendUser = await User.findById(item.sellerID);
+    if (!lendUser) {
+        return res.json({
+            success: false,
+            message: "Lend user not found in DB"
+        });
+    }
 
-    // Remove the item from itemsOnSale
+    // Remove the item from itemsOnSale for the lending user
     lendUser.itemsOnSale = lendUser.itemsOnSale.filter(
         thisItem => thisItem._id.toString() !== itemId
     );
 
+    // Mark the item as unavailable for rent
     item.availableToRent = false;
+    await item.save();
 
-    item.save();
-
-
-    // Append the item details to itemsBorrowed for the borrowing user
+    // Create item details to record in both borrower's itemsBorrowed and lender's itemsLended
     const itemDetails = {
         itemId: item._id,
         name: item.name,
@@ -289,17 +294,19 @@ export const rentItem = async (req, res) => {
         availableToRent: item.availableToRent,
     };
 
+    // Add item to borrower's itemsBorrowed list with the borrow date
     borrowUser.itemsBorrowed.push({
         ...itemDetails,
         dateBorrowed: new Date(),
     });
 
-    // Append the item details to itemsLended for the lending user
+    // Add item to lender's itemsLended list with the lend date
     lendUser.itemsLended.push({
         ...itemDetails,
         dateLended: new Date(),
     });
 
+    // Save updates to both users
     await borrowUser.save();
     await lendUser.save();
 
@@ -308,6 +315,7 @@ export const rentItem = async (req, res) => {
         message: "SOLD!!"
     });
 };
+
 
 // Return Item
 export const returnItem = async (req, res) => {
