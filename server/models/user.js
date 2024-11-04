@@ -22,6 +22,10 @@ const userSchema = mongoose.Schema(
             minLength: 6,
             required: true,
         },
+        contactNumber: {
+            type: Number,
+            required: true,
+        },
         totalEarning: {
             type: Number,
             default: 0

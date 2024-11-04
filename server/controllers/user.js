@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 
 export const createUser = async (req, res) => {
     try {
-        const { name, email, username, password } = req.body;
+        const { name, email, contactNumber, username, password } = req.body;
 
         console.log(name);
 
@@ -26,6 +26,7 @@ export const createUser = async (req, res) => {
             email,
             username,
             password: hashedPassword,
+            contactNumber
         })
 
         await user.save();
@@ -36,7 +37,8 @@ export const createUser = async (req, res) => {
                 _id: user._id,
                 name: user.name,
                 email: user.email,
-                username: user.username
+                username: user.username,
+                contactNumber: user.contactNumber,
             })
         } else {
             res.status(400).json({ error: "Invalid user details" })
