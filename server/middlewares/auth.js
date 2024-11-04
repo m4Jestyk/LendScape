@@ -5,10 +5,11 @@ export const isAuthenticated = async (req, res, next) => {
 
     try {
         const token = req.cookies.jwt;
+        // console.log(req);
         console.log("TOKEN =====", token);
 
         if(!token){
-            console.log("UNAUTHORISED USER")
+            console.log("Token not found")
             return res.status(401).json({message: "Unauthorised User"})
         }
 
@@ -25,7 +26,7 @@ export const isAuthenticated = async (req, res, next) => {
         next();
     } catch (err) {
         res.status(500).json({ message: err.message });
-		console.log("Error in auth middleware: ", err.message);
+		console.log("Error in auth middleware: ");
     }
 
 }

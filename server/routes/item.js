@@ -7,6 +7,11 @@ const router = express.Router();
 
 router.post("/add", isAuthenticated, addItem);
 
+// router.post("/rentitem/:itemid", isAuthenticated, rentItem);
+
+router.post("/rentitem", isAuthenticated, rentItem);
+
+
 router.get("/allitems", getAllItems);
 
 router.put("/update/:itemid", isAuthenticated, updateItem);
@@ -21,7 +26,6 @@ router.get("/getsaleitems/:userid", getSaleItems);
 
 router.get("/getborroweditems/:userid", getBorrowedItems);
 
-router.post("/rentitem/:itemid", isAuthenticated, rentItem);
 
 router.post("/return/:itemid", isAuthenticated, returnItem);
 

@@ -243,8 +243,10 @@ export const rentItem = async (req, res) => {
         });
     }
 
-    const itemId = req.params.itemid;
+    // const itemId = req.params.itemid;
+    const itemId = await req.body.itemid;
 
+    console.log(req.itemid);
     // Find the item to be rented
     const item = await Item.findById(itemId);
     if (!item) {
