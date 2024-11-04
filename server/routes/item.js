@@ -27,7 +27,7 @@ router.get("/getsaleitems/:userid", getSaleItems);
 router.get("/getborroweditems/:userid", getBorrowedItems);
 
 
-router.post("/return/:itemid", isAuthenticated, returnItem);
+router.post("/return", isAuthenticated, returnItem);
 
 
 export default router;

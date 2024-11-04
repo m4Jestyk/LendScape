@@ -320,12 +320,92 @@ export const rentItem = async (req, res) => {
 
 
 // Return Item
+// export const returnItem = async (req, res) => {
+
+//     //ADD FEATURE OF PROFIT CALCULATION!!!
+
+//     const userId = req.user._id;
+
+//     const borrowUser = await User.findById(userId);
+
+//     if (!borrowUser) {
+//         return res.json({
+//             success: false,
+//             message: "Borrowing user not found in DB"
+//         });
+//     }
+
+//     // const itemId = req.params.itemid;
+
+//     const itemId = req.body.itemid;
+//     console.log(itemId);
+
+//     const item = await Item.findById(itemId);
+
+//     if (!item) {
+//         return res.json({
+//             success: false,
+//             message: "Item not found"
+//         });
+//     }
+
+//     item.availableToRent = true;
+
+//     const lendUser = await User.findById(item.sellerID);
+
+//     if (!lendUser) {
+//         return res.json({
+//             success: false,
+//             message: "Lend User not found in DB"
+//         });
+//     }
+
+//     if (typeof item.timesRented !== 'number' || isNaN(item.timesRented)) {
+//         item.timesRented = 0; // Initialize to 0 if not a number
+//     }
+
+//     // Increment timesRented when the item is returned
+//     item.timesRented += 1;
+//     await item.save();
+
+//     // Updated item details after incrementing timesRented
+//     const itemDetails = {
+//         itemId: item._id,
+//         name: item.name,
+//         category: item.category,
+//         priceByTenure: item.priceByTenure,
+//         age: item.age,
+//         description: item.description,
+//         condition: item.condition,
+//         stars: item.stars,
+//         timesRented: item.timesRented,   // Updated count
+//         availableToRent: item.availableToRent
+//     };
+
+//     // Add the item back to itemsOnSale
+//     lendUser.itemsOnSale.push(itemDetails);
+
+//     // Remove the item from itemsBorrowed for the borrowing user
+//     borrowUser.itemsBorrowed = borrowUser.itemsBorrowed.filter(
+//         thisItem => thisItem.itemId.toString() !== itemId
+//     );
+
+//     // Remove the item from itemsLended for the lending user
+//     lendUser.itemsLended = lendUser.itemsLended.filter(
+//         thisItem => thisItem.itemId.toString() !== itemId
+//     );
+
+//     await borrowUser.save();
+//     await lendUser.save();
+
+//     return res.status(200).json({
+//         success: true,
+//         message: "Item returned!"
+//     });
+// };
+
 export const returnItem = async (req, res) => {
-
-    //ADD FEATURE OF PROFIT CALCULATION!!!
-
     const userId = req.user._id;
-
     const borrowUser = await User.findById(userId);
 
     if (!borrowUser) {
@@ -335,9 +415,22 @@ export const returnItem = async (req, res) => {
         });
     }
 
-    const itemId = req.params.itemid;
+    const itemId = req.body.itemid;
+    console.log("Item ID received:", itemId);
 
-    const item = await Item.findById(itemId);
+    let item;
+    try {
+        const objectId = new mongoose.Types.ObjectId(itemId);
+        console.log("Converted ObjectId:", objectId);
+        item = await Item.findById(objectId);
+    } catch (error) {
+        console.error("Error converting itemId to ObjectId:", error);
+        return res.json({
+            success: false,
+            message: "Invalid item ID format"
+        });
+    }
+
 
     if (!item) {
         return res.json({
@@ -349,7 +442,6 @@ export const returnItem = async (req, res) => {
     item.availableToRent = true;
 
     const lendUser = await User.findById(item.sellerID);
-
     if (!lendUser) {
         return res.json({
             success: false,
@@ -400,4 +492,3 @@ export const returnItem = async (req, res) => {
         message: "Item returned!"
     });
 };
-
