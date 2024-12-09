@@ -1,13 +1,31 @@
 import mongoose from "mongoose";
 import Item from "../models/item.js";
 import { User } from "../models/user.js";
+import {v2 as cloudinary} from "cloudinary";
 
 export const addItem = async (req, res) => {
+
     const userId = req.user._id;
 
-    console.log("User id is =========", userId);
 
     const { name, category, priceByTenure, age, description, condition } = req.body;
+
+    let { imgUrl } = req.body;
+
+    console.log(imgUrl);
+
+    try {
+        if (imgUrl) {
+            const uploadedResponse = await cloudinary.uploader.upload(imgUrl);
+            imgUrl = uploadedResponse.secure_url;
+            console.log(uploadedResponse);
+        }
+    } catch (error) {
+        console.log("Error while uploading the photo :: ", error);
+    }
+    
+    
+
 
     const item = await Item.create({
         name,
@@ -16,10 +34,12 @@ export const addItem = async (req, res) => {
         age,
         description,
         condition,
-        sellerID: userId
+        imgUrl,
+        sellerID: userId,
+        timesRented : 0
     })
 
-    item.save();
+    await item.save();
 
     console.log("Item created");
 
@@ -492,3 +512,75 @@ export const returnItem = async (req, res) => {
         message: "Item returned!"
     });
 };
+
+
+export const getItemByCategory = async (req, res) => {
+    try {
+      const { category } = req.body; // Get the category from the request body
+  
+      if (!category) {
+        return res.status(400).json({
+          success: false,
+          message: "Category is required",
+        });
+      }
+  
+      // Search for items where the category matches the provided keyword
+      const items = await Item.find({ category: { $regex: category, $options: "i" } });
+  
+      if (items.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No items found for the given category",
+        });
+      }
+  
+      return res.status(200).json({
+        success: true,
+        message: "Items found",
+        items,
+      });
+    } catch (error) {
+      console.error("Error in getItemByCategory :: ", error);
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred while fetching items",
+      });
+    }
+  };
+
+
+export const getItemByName = async (req, res) => {
+    try {
+      const { label } = req.body; 
+  
+      if (!label) {
+        return res.status(400).json({
+          success: false,
+          message: "Label is required",
+        });
+      }
+  
+      const items = await Item.find({ name: { $regex: label, $options: "i" } });
+  
+      if (items.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No items found for the given category",
+        });
+      }
+  
+      return res.status(200).json({
+        success: true,
+        message: "Items found",
+        items,
+      });
+    } catch (error) {
+      console.error("Error in getItemByName :: ", error);
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred while fetching items",
+      });
+    }
+  };
+  

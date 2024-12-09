@@ -37,6 +37,10 @@ const itemSchema = mongoose.Schema(
             type: Number,
             default: 0
         },
+        imgUrl: {
+            type: String,
+			default: "",
+        },
         reviews: [
             {
                 userId: {

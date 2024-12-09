@@ -210,3 +210,36 @@ export const deleteProfile = async (req, res) => {
         });
     }
 };
+
+
+export const getName = async (req, res) => {          //TO BE SEEN
+    try {
+        const { userId } = req.body;
+
+        // Convert userId string to ObjectId
+        const objectId = new mongoose.Types.ObjectId(userId);
+
+        const user = await User.findById(objectId);
+
+        if (!user) {
+            return res.json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        console.log("Reached here...");
+
+        return res.json({
+            success: true,
+            message: "User found",
+            user
+        });
+    } catch (error) {
+        console.error("Error in getting user :: ", error);
+        return res.json({
+            success: false,
+            message: "Error in processing request"
+        });
+    }
+};
