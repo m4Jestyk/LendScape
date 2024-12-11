@@ -583,4 +583,89 @@ export const getItemByName = async (req, res) => {
       });
     }
   };
+
+
+export const feedback = async(req, res) => {
+    const {stars} = req.body;
+
+    try {
+        const {itemId} = req.body;
+
+        let item = await Item.findById(itemId);
+
+        if (!item) return res.status(400).json({ error: "Item not found" });
+
+        const prevStars = item.stars;
+
+        const updatedStars = Math.floor((prevStars + stars)/2);
+
+        console.log(`${prevStars} + ${stars} / 2`);
+
+        item.stars = updatedStars;
+
+        item = await item.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Successfully updated stars",
+            item
+        })
+    } catch (error) {
+        console.log("Error in stars :: ", error);
+        res.status(500);
+    }
+}
+
+export const likeItem = async (req, res) => {
+    try {
+        console.log("HIT================")
+        const itemId = req.body.itemId; // Extract itemId from the request body
+        if (!itemId) {
+            console.log("id not found")
+            return res.status(400).json({ success: false, message: "Item ID is required." });
+        }
+
+        // const item = await Item.findById(itemId);
+
+        const objectId = new mongoose.Types.ObjectId(itemId);
+        console.log("Converted ObjectId:", objectId);
+        const item = await Item.findById(objectId);
+        
+        if (!item) {
+            console.log("Item not found");
+            return res.status(404).json({ success: false, message: "Item not found." });
+        }
+
+        item.numberLiked = (item.numberLiked || 0) + 1; // Increment numberLiked
+        await item.save();
+
+        res.status(200).json({ success: true, message: "Item liked successfully.", item });
+    } catch (error) {
+        console.error("Error in likingItem:", error);
+        res.status(500).json({ success: false, message: "Internal server error." });
+    }
+};
+
+export const dislikeItem = async (req, res) => {
+    try {
+        const { itemId } = req.body; // Extract itemId from the request body
+        if (!itemId) {
+            return res.status(400).json({ success: false, message: "Item ID is required." });
+        }
+
+        const item = await Item.findById(itemId);
+        if (!item) {
+            return res.status(404).json({ success: false, message: "Item not found." });
+        }
+
+        item.numberDisliked = (item.numberDisliked || 0) + 1; // Increment numberDisliked
+        await item.save();
+
+        res.status(200).json({ success: true, message: "Item disliked successfully.", item });
+    } catch (error) {
+        console.error("Error in dislikingItem:", error);
+        res.status(500).json({ success: false, message: "Internal server error." });
+    }
+};
+
   

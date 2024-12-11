@@ -1,6 +1,6 @@
 import express from "express"
 import { isAuthenticated } from "../middlewares/auth.js";
-import { addItem, deleteItem, getAllItems, getBorrowedItems, getItem, getItemByCategory, getItemByName, getLendedItems, getSaleItems, rentItem, returnItem, updateItem } from "../controllers/item.js";
+import { addItem, deleteItem, dislikeItem, feedback, getAllItems, getBorrowedItems, getItem, getItemByCategory, getItemByName, getLendedItems, getSaleItems, likeItem, rentItem, returnItem, updateItem } from "../controllers/item.js";
 
 
 const router = express.Router();
@@ -31,6 +31,12 @@ router.post("/getbycategory", getItemByCategory);
 router.post("/getbylabel", getItemByName);
 
 router.post("/return", isAuthenticated, returnItem);
+
+router.put("/feedback", feedback);
+
+router.post("/like", likeItem);;
+
+router.post("/dislike", dislikeItem);
 
 
 export default router;

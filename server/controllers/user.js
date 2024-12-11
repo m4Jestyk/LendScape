@@ -101,7 +101,6 @@ export const logout = async (req, res) => {
 };
 
 
-
 export const getProfile = async (req, res, next) => {
     //WE WILL FETCH USER USING EITHER USERID OR USERNAME
     //  query CAN BE EITHER USERID OR USERNAME      
@@ -214,12 +213,18 @@ export const deleteProfile = async (req, res) => {
 
 export const getName = async (req, res) => {          //TO BE SEEN
     try {
-        const { userId } = req.body;
+        // const { userId } = req.body;
+        const userId = req.params.userid;
 
-        // Convert userId string to ObjectId
         const objectId = new mongoose.Types.ObjectId(userId);
 
+        console.log(objectId);
+
         const user = await User.findById(objectId);
+
+        console.log(user);
+
+
 
         if (!user) {
             return res.json({

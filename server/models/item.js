@@ -41,6 +41,14 @@ const itemSchema = mongoose.Schema(
             type: String,
 			default: "",
         },
+        numberLiked: {
+            type: Number,
+            default: 0
+        },
+        numberDisliked: {
+            type: Number,
+            default: 0
+        },
         reviews: [
             {
                 userId: {

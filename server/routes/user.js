@@ -18,4 +18,5 @@ router.delete("/delete/:id", isAuthenticated, deleteProfile);
 
 router.post("/getuser", getName);
 
+
 export default router;
